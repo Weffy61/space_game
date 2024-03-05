@@ -57,7 +57,9 @@ async def animate_spaceship(canvas, row, column, max_row, max_column):
             column = position_column
 
         draw_frame(canvas, row, column, frame)
-        await asyncio.sleep(0)
+        for _ in range(2):
+            await asyncio.sleep(0)
+
         draw_frame(canvas, row, column, frame, negative=True)
 
 
