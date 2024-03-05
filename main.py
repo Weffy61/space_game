@@ -1,5 +1,6 @@
 import curses
 import time
+import random
 
 from animations import animate_spaceship, blink, fire
 from text_utils import get_random_coord, get_random_symbol
@@ -16,6 +17,7 @@ def draw(canvas):
         blink(canvas,
               row=get_random_coord(max_row),
               column=get_random_coord(max_column),
+              offset_tics=random.randint(0, 3),
               symbol=get_random_symbol())
         for _ in range(100)]
     coroutines.append(

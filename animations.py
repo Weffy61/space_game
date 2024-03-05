@@ -1,7 +1,6 @@
 import asyncio
 import curses
 import os.path
-import random
 from itertools import cycle
 
 from control_spaceship import read_controls
@@ -93,9 +92,9 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
         column += columns_speed
 
 
-async def blink(canvas, row, column, symbol='*'):
+async def blink(canvas, row, column, offset_tics, symbol='*'):
     while True:
-        for i in range(random.randint(0, 3)):
+        for i in range(offset_tics):
             await asyncio.sleep(0)
 
         canvas.addstr(row, column, symbol, curses.A_DIM)
