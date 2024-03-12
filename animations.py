@@ -43,7 +43,7 @@ async def animate_spaceship(canvas, row, column, max_row, max_column):
     frame1 = get_slide(os.path.join('frames', 'rocket_frame.txt'))
     frame2 = get_slide(os.path.join('frames', 'rocket_frame_2.txt'))
 
-    for frame in cycle([frame1, frame2]):
+    for frame in cycle([frame1, frame1, frame2, frame2]):
         frame_rows, frame_columns = get_frame_size(frame)
         rows_direction, columns_direction, space_pressed = read_controls(canvas)
         position_row = rows_direction + row
@@ -56,8 +56,7 @@ async def animate_spaceship(canvas, row, column, max_row, max_column):
             column = position_column
 
         draw_frame(canvas, row, column, frame)
-        for _ in range(2):
-            await asyncio.sleep(0)
+        await asyncio.sleep(0)
 
         draw_frame(canvas, row, column, frame, negative=True)
 
