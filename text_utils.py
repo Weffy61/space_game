@@ -18,3 +18,7 @@ def get_random_symbol():
     symbols = '+*.:'
     return random.choice(symbols)
 
+
+def get_random_trash():
+    trash_img = ['trash_large.txt', 'trash_small.txt', 'trash_xl.txt']
+    return random.choice(trash_img)

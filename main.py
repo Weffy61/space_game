@@ -2,7 +2,7 @@ import curses
 import time
 import random
 
-from animations import animate_spaceship, blink, fire
+from animations import animate_spaceship, blink, fire, fill_orbit_with_garbage
 from text_utils import get_random_coord, get_random_symbol
 
 TIC_TIMEOUT = 0.1
@@ -31,6 +31,9 @@ def draw(canvas):
                           max_column / 2,
                           max_row,
                           max_column))
+    coroutines.append(
+        fill_orbit_with_garbage(canvas, max_column, coroutines)
+    )
     while True:
         for coroutine in coroutines.copy():
             try:

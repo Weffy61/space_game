@@ -1,11 +1,12 @@
 import asyncio
 import curses
-import os.path
+import os
+import random
 from itertools import cycle
 
 from control_spaceship import read_controls
 from get_frame import get_slide
-from text_utils import get_frame_size
+from text_utils import get_frame_size, get_random_trash
 
 
 def draw_frame(canvas, start_row, start_column, text, negative=False):
@@ -113,5 +114,30 @@ async def blink(canvas, row, column, offset_tics, symbol='*'):
             await asyncio.sleep(0)
 
 
+async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
+    """Animate garbage, flying from top to bottom. Сolumn position will stay same, as specified on start."""
+    rows_number, columns_number = canvas.getmaxyx()
+
+    column = max(column, 0)
+    column = min(column, columns_number - 1)
+
+    row = 0
+
+    while row < rows_number:
+        draw_frame(canvas, row, column, garbage_frame)
+        await asyncio.sleep(0)
+        draw_frame(canvas, row, column, garbage_frame, negative=True)
+        row += speed
 
 
+async def fill_orbit_with_garbage(canvas, max_column, coroutines):
+    while True:
+        column = random.randint(1, max_column - 1)
+        coroutine = fly_garbage(
+            canvas,
+            column,
+            garbage_frame=get_slide(os.path.join('frames', get_random_trash())))
+        coroutines.append(coroutine)
+        for _ in range(random.randint(5, 10)):
+            await asyncio.sleep(0)
+            await asyncio.sleep(0)
