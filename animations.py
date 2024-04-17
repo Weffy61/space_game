@@ -6,6 +6,7 @@ from itertools import cycle
 
 from control_spaceship import read_controls
 from get_frame import get_slide
+from sleep import async_sleep
 from text_utils import get_frame_size, get_random_trash
 
 
@@ -94,24 +95,19 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
 
 async def blink(canvas, row, column, offset_tics, symbol='*'):
     while True:
-        for i in range(offset_tics):
-            await asyncio.sleep(0)
+        await async_sleep(offset_tics)
 
         canvas.addstr(row, column, symbol, curses.A_DIM)
-        for i in range(20):
-            await asyncio.sleep(0)
+        await async_sleep(20)
 
         canvas.addstr(row, column, symbol)
-        for i in range(3):
-            await asyncio.sleep(0)
+        await async_sleep(3)
 
         canvas.addstr(row, column, symbol, curses.A_BOLD)
-        for i in range(5):
-            await asyncio.sleep(0)
+        await async_sleep(5)
 
         canvas.addstr(row, column, symbol)
-        for i in range(3):
-            await asyncio.sleep(0)
+        await async_sleep(3)
 
 
 async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
@@ -138,6 +134,7 @@ async def fill_orbit_with_garbage(canvas, max_column, coroutines):
             column,
             garbage_frame=get_slide(os.path.join('frames', get_random_trash())))
         coroutines.append(coroutine)
-        for _ in range(random.randint(5, 10)):
-            await asyncio.sleep(0)
-            await asyncio.sleep(0)
+        await async_sleep(random.randint(5, 10))
+        # for _ in range(random.randint(5, 10)):
+        #     await asyncio.sleep(0)
+        #     await asyncio.sleep(0)
