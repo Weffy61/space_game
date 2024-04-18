@@ -5,44 +5,16 @@ import random
 from itertools import cycle
 
 from control_spaceship import read_controls
+from curses_tools import draw_frame
 from get_frame import get_slide
+from constants import COROUTINES, OBSTACLES
+from obstacles import Obstacle, show_obstacles
 from physics import update_speed
 from sleep import async_sleep
-from text_utils import get_frame_size, get_random_trash
+from utils import get_frame_size, get_random_trash
 
 
-def draw_frame(canvas, start_row, start_column, text, negative=False):
-    """Draw multiline text fragment on canvas, erase text instead of drawing if negative=True is specified."""
-    rows_number, columns_number = canvas.getmaxyx()
-
-    for row, line in enumerate(text.splitlines(), round(start_row)):
-        if row < 0:
-            continue
-
-        if row >= rows_number:
-            break
-
-        for column, symbol in enumerate(line, round(start_column)):
-            if column < 0:
-                continue
-
-            if column >= columns_number:
-                break
-
-            if symbol == ' ':
-                continue
-
-            # Check that current position it is not in a lower right corner of the window
-            # Curses will raise exception in that case. Don`t ask why…
-            # https://docs.python.org/3/library/curses.html#curses.window.addch
-            if row == rows_number - 1 and column == columns_number - 1:
-                continue
-
-            symbol = symbol if not negative else ' '
-            canvas.addch(row, column, symbol)
-
-
-async def animate_spaceship(canvas, row, column, max_row, max_column, coroutines):
+async def animate_spaceship(canvas, row, column, max_row, max_column):
     frame1 = get_slide(os.path.join('frames', 'rocket_frame.txt'))
     frame2 = get_slide(os.path.join('frames', 'rocket_frame_2.txt'))
     row_speed = column_speed = 0
@@ -66,7 +38,7 @@ async def animate_spaceship(canvas, row, column, max_row, max_column, coroutines
             column = max_column - frame_columns
 
         if space_pressed:
-            coroutines.append(fire(canvas, row - 1, column + 2))
+            COROUTINES.append(fire(canvas, row - 1, column + 2))
 
         draw_frame(canvas, row, column, frame)
         await asyncio.sleep(0)
@@ -124,25 +96,35 @@ async def blink(canvas, row, column, offset_tics, symbol='*'):
 async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     """Animate garbage, flying from top to bottom. Сolumn position will stay same, as specified on start."""
     rows_number, columns_number = canvas.getmaxyx()
+    row_size, columns_size = get_frame_size(garbage_frame)
 
     column = max(column, 0)
     column = min(column, columns_number - 1)
 
     row = 0
 
-    while row < rows_number:
-        draw_frame(canvas, row, column, garbage_frame)
-        await asyncio.sleep(0)
-        draw_frame(canvas, row, column, garbage_frame, negative=True)
-        row += speed
+    obstacle = Obstacle(row, column, row_size, columns_size)
+    OBSTACLES.append(obstacle)
+    COROUTINES.append(show_obstacles(canvas, OBSTACLES))
+
+    try:
+        while row < rows_number:
+            obstacle.row = row
+            draw_frame(canvas, row, column, garbage_frame)
+            await asyncio.sleep(0)
+            draw_frame(canvas, row, column, garbage_frame, negative=True)
+            row += speed
+    finally:
+        OBSTACLES.remove(obstacle)
 
 
-async def fill_orbit_with_garbage(canvas, max_column, coroutines):
+async def fill_orbit_with_garbage(canvas, max_column):
     while True:
         column = random.randint(1, max_column - 1)
         coroutine = fly_garbage(
             canvas,
             column,
             garbage_frame=get_slide(os.path.join('frames', get_random_trash())))
-        coroutines.append(coroutine)
-        await async_sleep(random.randint(10, 15))
+        COROUTINES.append(coroutine)
+        await async_sleep(random.randint(15, 20))
+
