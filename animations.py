@@ -7,7 +7,7 @@ from itertools import cycle
 from control_spaceship import read_controls
 from curses_tools import draw_frame
 from get_frame import get_slide
-from constants import COROUTINES, OBSTACLES
+from globals import COROUTINES, OBSTACLES
 from obstacles import Obstacle, show_obstacles
 from physics import update_speed
 from sleep import async_sleep
