@@ -42,7 +42,7 @@ def draw_frame(canvas, start_row, start_column, text, negative=False):
             canvas.addch(row, column, symbol)
 
 
-async def animate_spaceship(canvas, row, column, max_row, max_column):
+async def animate_spaceship(canvas, row, column, max_row, max_column, coroutines):
     frame1 = get_slide(os.path.join('frames', 'rocket_frame.txt'))
     frame2 = get_slide(os.path.join('frames', 'rocket_frame_2.txt'))
     row_speed = column_speed = 0
@@ -64,6 +64,9 @@ async def animate_spaceship(canvas, row, column, max_row, max_column):
             column = 0
         elif column > max_column - frame_columns:
             column = max_column - frame_columns
+
+        if space_pressed:
+            coroutines.append(fire(canvas, row - 1, column + 2))
 
         draw_frame(canvas, row, column, frame)
         await asyncio.sleep(0)
@@ -143,4 +146,3 @@ async def fill_orbit_with_garbage(canvas, max_column, coroutines):
             garbage_frame=get_slide(os.path.join('frames', get_random_trash())))
         coroutines.append(coroutine)
         await async_sleep(random.randint(10, 15))
-

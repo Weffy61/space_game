@@ -20,17 +20,18 @@ def draw(canvas):
               offset_tics=random.randint(0, 3),
               symbol=get_random_symbol())
         for _ in range(100)]
-    coroutines.append(
-        fire(canvas,
-             start_row=max_row - 2,
-             start_column=max_column / 2 + 2)
-    )
+    # coroutines.append(
+    #     fire(canvas,
+    #          start_row=max_row - 2,
+    #          start_column=max_column / 2 + 2)
+    # )
     coroutines.append(
         animate_spaceship(canvas,
                           max_row / 2,
                           max_column / 2,
                           max_row,
-                          max_column))
+                          max_column,
+                          coroutines))
     coroutines.append(
         fill_orbit_with_garbage(canvas, max_column, coroutines)
     )
