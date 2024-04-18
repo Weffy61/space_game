@@ -7,7 +7,7 @@ from itertools import cycle
 from control_spaceship import read_controls
 from curses_tools import draw_frame
 from get_frame import get_slide
-from globals import COROUTINES, OBSTACLES
+from globals import COROUTINES, OBSTACLES, OBSTACLES_IN_LAST_COLLISIONS
 from obstacles import Obstacle, show_obstacles
 from physics import update_speed
 from sleep import async_sleep
@@ -71,6 +71,7 @@ async def fire(canvas, start_row, start_column, rows_speed=-0.3, columns_speed=0
     while 0 < row < max_row and 0 < column < max_column:
         for obstacle in OBSTACLES:
             if obstacle.has_collision(row, column):
+                OBSTACLES_IN_LAST_COLLISIONS.append(obstacle)
                 return
         canvas.addstr(round(row), round(column), symbol)
         await asyncio.sleep(0)
@@ -108,10 +109,14 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
 
     obstacle = Obstacle(row, column, row_size, columns_size)
     OBSTACLES.append(obstacle)
-    COROUTINES.append(show_obstacles(canvas, OBSTACLES))
+    # COROUTINES.append(show_obstacles(canvas, OBSTACLES))
 
     try:
         while row < rows_number:
+            if obstacle in OBSTACLES_IN_LAST_COLLISIONS:
+                OBSTACLES_IN_LAST_COLLISIONS.remove(obstacle)
+                return
+
             obstacle.row = row
             draw_frame(canvas, row, column, garbage_frame)
             await asyncio.sleep(0)
