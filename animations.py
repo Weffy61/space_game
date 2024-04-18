@@ -6,6 +6,7 @@ from itertools import cycle
 
 from control_spaceship import read_controls
 from get_frame import get_slide
+from physics import update_speed
 from sleep import async_sleep
 from text_utils import get_frame_size, get_random_trash
 
@@ -44,18 +45,25 @@ def draw_frame(canvas, start_row, start_column, text, negative=False):
 async def animate_spaceship(canvas, row, column, max_row, max_column):
     frame1 = get_slide(os.path.join('frames', 'rocket_frame.txt'))
     frame2 = get_slide(os.path.join('frames', 'rocket_frame_2.txt'))
+    row_speed = column_speed = 0
 
     for frame in cycle([frame1, frame1, frame2, frame2]):
         frame_rows, frame_columns = get_frame_size(frame)
         rows_direction, columns_direction, space_pressed = read_controls(canvas)
-        position_row = rows_direction + row
-        position_column = columns_direction + column
 
-        if 0 < position_row < max_row - frame_rows:
-            row = position_row
+        row_speed, column_speed = update_speed(row_speed, column_speed, rows_direction, columns_direction)
+        row += row_speed
+        column += column_speed
 
-        if 0 < position_column < max_column - frame_columns:
-            column = position_column
+        if row < 0:
+            row = 0
+        elif row > max_row - frame_rows:
+            row = max_row - frame_rows
+
+        if column < 0:
+            column = 0
+        elif column > max_column - frame_columns:
+            column = max_column - frame_columns
 
         draw_frame(canvas, row, column, frame)
         await asyncio.sleep(0)
@@ -134,7 +142,5 @@ async def fill_orbit_with_garbage(canvas, max_column, coroutines):
             column,
             garbage_frame=get_slide(os.path.join('frames', get_random_trash())))
         coroutines.append(coroutine)
-        await async_sleep(random.randint(5, 10))
-        # for _ in range(random.randint(5, 10)):
-        #     await asyncio.sleep(0)
-        #     await asyncio.sleep(0)
+        await async_sleep(random.randint(10, 15))
+
