@@ -6,12 +6,13 @@ from itertools import cycle
 
 from control_spaceship import read_controls
 from curses_tools import draw_frame
+from explosion import explode
 from get_frame import get_slide
 from globals import COROUTINES, OBSTACLES, OBSTACLES_IN_LAST_COLLISIONS
 from obstacles import Obstacle, show_obstacles
 from physics import update_speed
 from sleep import async_sleep
-from utils import get_frame_size, get_random_trash
+from curses_tools import get_frame_size, get_random_trash
 
 
 async def animate_spaceship(canvas, row, column, max_row, max_column):
@@ -115,6 +116,7 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
         while row < rows_number:
             if obstacle in OBSTACLES_IN_LAST_COLLISIONS:
                 OBSTACLES_IN_LAST_COLLISIONS.remove(obstacle)
+                await explode(canvas, obstacle.row + row_size // 2, obstacle.column + columns_size // 2)
                 return
 
             obstacle.row = row

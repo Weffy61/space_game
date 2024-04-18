@@ -4,7 +4,7 @@ import random
 
 from animations import animate_spaceship, blink, fill_orbit_with_garbage
 from globals import COROUTINES, TIC_TIMEOUT
-from utils import get_random_coord, get_random_symbol
+from curses_tools import get_random_coord, get_random_symbol
 
 
 def draw(canvas):
