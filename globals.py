@@ -7,3 +7,4 @@ class Globals:
     year: int = 1957
 
 
+constants = Globals()

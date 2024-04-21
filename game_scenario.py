@@ -1,6 +1,6 @@
 import asyncio
 
-from globals import Globals
+from globals import constants
 from sleep import async_sleep
 
 PHRASES = {
@@ -36,12 +36,12 @@ async def show_year(canvas):
     max_row, max_column = canvas.getmaxyx()
     inscription = canvas.derwin(4, max_column, max_row - 4, 0)
     while True:
-        if Globals.year in PHRASES.keys():
-            phrase = PHRASES.get(Globals.year)
+        if constants.year in PHRASES.keys():
+            phrase = PHRASES.get(constants.year)
             inscription.addstr(2, 2, phrase)
         else:
             inscription.addstr(2, 2, ' ' * max_column)
-        inscription.addstr(1, 1, f'YEAR: {Globals.year}')
+        inscription.addstr(1, 1, f'YEAR: {constants.year}')
         inscription.refresh()
         await asyncio.sleep(0)
 
@@ -49,7 +49,7 @@ async def show_year(canvas):
 async def increase_in_time():
     while True:
         await async_sleep(15)
-        Globals.year += 1
+        constants.year += 1
 
 
 
