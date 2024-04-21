@@ -7,8 +7,9 @@ from itertools import cycle
 from control_spaceship import read_controls
 from curses_tools import draw_frame
 from explosion import explode
+from game_scenario import get_garbage_delay_tics
 from get_frame import get_slide
-from globals import COROUTINES, OBSTACLES, OBSTACLES_IN_LAST_COLLISIONS
+from globals import Globals
 from obstacles import Obstacle, show_obstacles
 from physics import update_speed
 from sleep import async_sleep
@@ -24,6 +25,12 @@ async def animate_spaceship(canvas, row, column, max_row, max_column):
         frame_rows, frame_columns = get_frame_size(frame)
         rows_direction, columns_direction, space_pressed = read_controls(canvas)
 
+        for obstacle in Globals.obstacles:
+            if obstacle.has_collision(row, column, frame_rows, frame_columns):
+                await explode(canvas, row + frame_rows // 2, column + frame_columns // 2)
+                Globals.coroutines.append(show_gameover(canvas))
+                return
+
         row_speed, column_speed = update_speed(row_speed, column_speed, rows_direction, columns_direction)
         row += row_speed
         column += column_speed
@@ -38,8 +45,8 @@ async def animate_spaceship(canvas, row, column, max_row, max_column):
         elif column > max_column - frame_columns:
             column = max_column - frame_columns
 
-        if space_pressed:
-            COROUTINES.append(fire(canvas, row - 1, column + 2))
+        if space_pressed and Globals.year > 2020:
+            Globals.coroutines.append(fire(canvas, row - 1, column + 2))
 
         draw_frame(canvas, row, column, frame)
         await asyncio.sleep(0)
@@ -70,9 +77,9 @@ async def fire(canvas, start_row, start_column, rows_speed=-2, columns_speed=0):
     curses.beep()
 
     while 0 < row < max_row and 0 < column < max_column:
-        for obstacle in OBSTACLES:
+        for obstacle in Globals.obstacles:
             if obstacle.has_collision(row, column):
-                OBSTACLES_IN_LAST_COLLISIONS.append(obstacle)
+                Globals.obstacles_in_last_collisions.append(obstacle)
                 return
         canvas.addstr(round(row), round(column), symbol)
         await asyncio.sleep(0)
@@ -109,13 +116,13 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
     row = 0
 
     obstacle = Obstacle(row, column, row_size, columns_size)
-    OBSTACLES.append(obstacle)
-    # COROUTINES.append(show_obstacles(canvas, OBSTACLES))
+    Globals.obstacles.append(obstacle)
+    Globals.coroutines.append(show_obstacles(canvas, Globals.obstacles))
 
     try:
         while row < rows_number:
-            if obstacle in OBSTACLES_IN_LAST_COLLISIONS:
-                OBSTACLES_IN_LAST_COLLISIONS.remove(obstacle)
+            if obstacle in Globals.obstacles_in_last_collisions:
+                Globals.obstacles_in_last_collisions.remove(obstacle)
                 await explode(canvas, obstacle.row + row_size // 2, obstacle.column + columns_size // 2)
                 return
 
@@ -125,16 +132,33 @@ async def fly_garbage(canvas, column, garbage_frame, speed=0.5):
             draw_frame(canvas, row, column, garbage_frame, negative=True)
             row += speed
     finally:
-        OBSTACLES.remove(obstacle)
+        Globals.obstacles.remove(obstacle)
 
 
 async def fill_orbit_with_garbage(canvas, max_column):
     while True:
         column = random.randint(1, max_column - 1)
-        coroutine = fly_garbage(
-            canvas,
-            column,
-            garbage_frame=get_slide(os.path.join('frames', get_random_trash())))
-        COROUTINES.append(coroutine)
-        await async_sleep(random.randint(15, 20))
+        delay = get_garbage_delay_tics(Globals.year)
+        if delay:
+            coroutine = fly_garbage(
+                canvas,
+                column,
+                garbage_frame=get_slide(os.path.join('frames', get_random_trash())))
+            Globals.coroutines.append(coroutine)
+            await async_sleep(delay)
+        await async_sleep(1)
 
+
+async def show_gameover(canvas):
+    frame = get_slide(os.path.join('frames', 'game_over.txt'))
+    frame_rows, frame_columns = get_frame_size(frame)
+    rows_number, columns_number = canvas.getmaxyx()
+
+    while True:
+        draw_frame(
+            canvas,
+            rows_number // 2 - frame_rows,
+            columns_number // 2 - frame_columns // 2,
+            frame
+        )
+        await asyncio.sleep(0)
