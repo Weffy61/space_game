@@ -1,5 +1,9 @@
-COROUTINES = []
-TIC_TIMEOUT = 0.1
-OBSTACLES = []
-OBSTACLES_IN_LAST_COLLISIONS = []
+
+class Globals:
+    coroutines: list = []
+    tic_timeout: float = 0.1
+    obstacles: list = []
+    obstacles_in_last_collisions: list = []
+    year: int = 1957
+
 
